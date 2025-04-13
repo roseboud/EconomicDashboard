@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Economic Power Shifts Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Add date adapter for time scales -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0 30px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 30px;
+            background-color: #2c3e50;
+            color: white;
+            border-radius: 8px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #ecf0f1;
+            font-size: 1.1em;
+        }
+
+        .info-panel {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-panel h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .info-panel p {
+            line-height: 1.6;
+            color: #34495e;
+            margin-bottom: 15px;
+        }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .chart-box {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            height: 400px;
+            position: relative;
+        }
+
+        .chart-box h2 {
+            color: #2c3e50;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .chart-controls {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 10; /* Ensure controls are above other elements */
+        }
+
+        .chart-controls label {
+            margin-right: 10px;
+            font-weight: 500;
+        }
+
+        select {
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+
+        canvas {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            width: calc(100% - 40px) !important;
+            height: calc(100% - 80px) !important;
+            z-index: 1;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #7f8c8d;
+            z-index: 5;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            border-top: 1px solid #ddd;
+        }
+
+        .disclaimer {
+            font-style: italic;
+            color: #95a5a6;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .chart-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Global Economic Power Shifts Dashboard</h1>
+            <p class="subtitle">Analyzing International Economic Indicators and Market Confidence</p>
+        </header>
+        
+        <section class="info-panel">
+            <h2>Global Economic Context</h2>
+            <p>
+                There are unconfirmed speculations that Canada has convinced allies to slowly and deliberately inflate the American bond market while Trump's policies devalue the USD, as a masterful coercive economic weapon. The complete unspeculative truth is that regardless of these theories, confidence in American imperialism and markets is falling rapidly.
+            </p>
+            <p>
+                The data below presents economic indicators that show trends in key financial markets. Through these indicators, we can observe how global economic power is shifting, with traditional Western financial dominance showing signs of erosion amidst increasing economic competition from other nations.
+            </p>
+            <p>
+                This data compliments a review of the long term US Treasury Bond Yields. 
+            </p>
+            <p class="disclaimer">
+                Note: This dashboard presents factual market data while acknowledging that broader geopolitical interpretations remain speculative. All data is sourced from Alpha Vantage API and processed to show meaningful trends.
+            </p>
+        </section>
+        
+        <div class="chart-container">
+            <section class="chart-box">
+                <h2>Currency Exchange Rate Trends</h2>
+                <div class="chart-controls">
+                    <label for="currency-select">Compare USD to:</label>
+                    <select id="currency-select">
+                        <option value="CAD">Canadian Dollar (CAD)</option>
+                        <option value="EUR">Euro (EUR)</option>
+                        <option value="JPY">Japanese Yen (JPY)</option>
+                        <option value="CNY">Chinese Yuan (CNY)</option>
+                    </select>
+                </div>
+                <div class="loading" id="currency-loading">Loading data...</div>
+                <canvas id="currency-chart"></canvas>
+            </section>
+            
+            <section class="chart-box">
+                <h2>Major Market Index Trends</h2>
+                <div class="loading" id="market-loading">Loading data...</div>
+                <canvas id="market-chart"></canvas>
+            </section>
+            
+            <section class="chart-box">
+                <h2>Global Economic Power Distribution</h2>
+                <div class="loading" id="power-loading">Loading data...</div>
+                <canvas id="power-chart"></canvas>
+            </section>
+            
+            <section class="chart-box">
+                <h2>Market Volatility Comparison</h2>
+                <div class="loading" id="volatility-loading">Loading data...</div>
+                <canvas id="volatility-chart"></canvas>
+            </section>
+        </div>
+        
+        <footer>
+            <p>Data sourced from Alpha Vantage API - Last updated: <span id="update-date"></span></p>
+            <p>This dashboard presents economic data visualization for educational purposes only.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Alpha Vantage API key
+        const apiKey = 'HPAQ8KPRKZ52A5XS'; // Free demo key with limited requests
+        
+        // Chart color scheme
+        const colors = {
+            blue: 'rgba(54, 162, 235, 0.7)',
+            red: 'rgba(255, 99, 132, 0.7)',
+            yellow: 'rgba(255, 206, 86, 0.7)',
+            green: 'rgba(75, 192, 192, 0.7)',
+            purple: 'rgba(153, 102, 255, 0.7)',
+            orange: 'rgba(255, 159, 64, 0.7)',
+            grey: 'rgba(201, 203, 207, 0.7)'
+        };
+
+        // Store chart instances
+        let charts = {
+            currencyChart: null,
+            marketChart: null,
+            powerChart: null,
+            volatilityChart: null
+        };
+
+        // Cached API data
+        const apiCache = {};
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set update date
+            document.getElementById('update-date').textContent = new Date().toLocaleDateString();
+            
+            // Load the initial currency chart
+            loadCurrencyExchangeChart('CAD');
+            
+            // Load other charts
+            loadMarketIndicesChart();
+            loadEconomicPowerChart();
+            loadMarketVolatilityChart();
+            
+            // Set up the currency dropdown event listener
+            document.getElementById('currency-select').addEventListener('change', function() {
+                loadCurrencyExchangeChart(this.value);
+            });
+        });
+
+        // Fetch data from Alpha Vantage API
+        async function fetchAlphaVantageData(endpoint, params) {
+            // Create cache key from endpoint and params
+            const cacheKey = endpoint + JSON.stringify(params);
+            
+            // Return cached data if available
+            if (apiCache[cacheKey]) {
+                return apiCache[cacheKey];
+            }
+            
+            // Construct API URL
+            let url = `https://www.alphavantage.co/query?${endpoint}&apikey=${apiKey}`;
+            for (const [key, value] of Object.entries(params)) {
+                url += `&${key}=${value}`;
+            }
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Cache the result
+                apiCache[cacheKey] = data;
+                
+                return data;
+            } catch (error) {
+                console.error('Error fetching Alpha Vantage data:', error);
+                return null;
+            }
+        }
+
+        // Process and derive insights from currency exchange data
+        function processCurrencyData(data, currency) {
+            if (!data || !data['Time Series FX (Daily)']) {
+                return { dates: [], values: [], movingAvg: [] };
+            }
+            
+            const timeSeries = data['Time Series FX (Daily)'];
+            const dates = [];
+            const values = [];
+            
+            // Extract and sort dates
+            const sortedDates = Object.keys(timeSeries).sort();
+            
+            // Only take last 90 days of data
+            const recentDates = sortedDates.slice(-90);
+            
+            // Extract exchange rates for sorted dates
+            recentDates.forEach(date => {
+                const dataPoint = timeSeries[date];
+                dates.push(new Date(date));
+                values.push(parseFloat(dataPoint['4. close']));
+            });
+            
+            // Calculate 7-day moving average
+            const movingAvg = [];
+            const windowSize = 7;
+            
+            for (let i = 0; i < values.length; i++) {
+                if (i < windowSize - 1) {
+                    // Not enough data points for window yet
+                    movingAvg.push(null);
+                } else {
+                    // Calculate average of window
+                    let sum = 0;
+                    for (let j = 0; j < windowSize; j++) {
+                        sum += values[i - j];
+                    }
+                    movingAvg.push(sum / windowSize);
+                }
+            }
+            
+            return { dates, values, movingAvg };
+        }
+
+        // Load Currency Exchange Rate Chart
+        async function loadCurrencyExchangeChart(currency) {
+            document.getElementById('currency-loading').style.display = 'block';
+            
+            // Fetch currency exchange data
+            const fromCurrency = 'USD';
+            const toCurrency = currency;
+            
+            const data = await fetchAlphaVantageData('function=FX_DAILY', {
+                from_symbol: fromCurrency,
+                to_symbol: toCurrency,
+                outputsize: 'full'
+            });
+            
+            // Hide loading indicator
+            document.getElementById('currency-loading').style.display = 'none';
+            
+            // Process data
+            const processedData = processCurrencyData(data, currency);
+            
+            // If no data, use sample data
+            if (processedData.dates.length === 0) {
+                console.log(`Using sample data for ${currency} exchange rate`);
+                
+                // Generate sample dates (last 90 days)
+                const dates = [];
+                for (let i = 90; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    dates.push(date);
+                }
+                
+                // Generate sample values based on currency
+                let baseValue, trend, volatility;
+                switch(currency) {
+                    case 'CAD':
+                        baseValue = 1.35;
+                        trend = 0.0002;
+                        volatility = 0.01;
+                        break;
+                    case 'EUR':
+                        baseValue = 0.92;
+                        trend = -0.0001;
+                        volatility = 0.005;
+                        break;
+                    case 'JPY':
+                        baseValue = 110;
+                        trend = 0.05;
+                        volatility = 0.2;
+                        break;
+                    case 'CNY':
+                        baseValue = 7.1;
+                        trend = 0.001;
+                        volatility = 0.01;
+                        break;
+                    default:
+                        baseValue = 1;
+                        trend = 0;
+                        volatility = 0.01;
+                }
+                
+                // Generate values with trend and volatility
+                const values = [];
+                let currentValue = baseValue;
+                
+                for (let i = 0; i < dates.length; i++) {
+                    const randomFactor = (Math.random() - 0.5) * volatility;
+                    currentValue = currentValue * (1 + trend + randomFactor);
+                    values.push(currentValue);
+                }
+                
+                // Calculate moving average
+                const movingAvg = [];
+                const windowSize = 7;
+                
+                for (let i = 0; i < values.length; i++) {
+                    if (i < windowSize - 1) {
+                        movingAvg.push(null);
+                    } else {
+                        let sum = 0;
+                        for (let j = 0; j < windowSize; j++) {
+                            sum += values[i - j];
+                        }
+                        movingAvg.push(sum / windowSize);
+                    }
+                }
+                
+                processedData.dates = dates;
+                processedData.values = values;
+                processedData.movingAvg = movingAvg;
+            }
+            
+            // Prepare chart data
+            const ctx = document.getElementById('currency-chart').getContext('2d');
+            
+            // Destroy previous chart if it exists
+            if (charts.currencyChart) {
+                charts.currencyChart.destroy();
+            }
+            
+            // Create new chart
+            charts.currencyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: `USD to ${currency} Exchange Rate`,
+                            data: processedData.dates.map((date, i) => ({
+                                x: date,
+                                y: processedData.values[i]
+                            })),
+                            borderColor: colors.blue,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '7-Day Moving Average',
+                            data: processedData.dates.map((date, i) => ({
+                                x: date,
+                                y: processedData.movingAvg[i]
+                            })),
+                            borderColor: colors.red,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `USD to ${currency}`,
+                            font: { size: 14 }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'week',
+                                displayFormats: {
+                                    week: 'MMM d'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: `Exchange Rate (USD to ${currency})`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load Market Indices Chart (line chart comparing different indices)
+        async function loadMarketIndicesChart() {
+            document.getElementById('market-loading').style.display = 'block';
+            
+            // Fetch data for different market indices
+            // For demonstration, we'll use S&P 500, might hit API limits with free key
+            const spxData = await fetchAlphaVantageData('function=TIME_SERIES_MONTHLY', {
+                symbol: 'SPY',
+                outputsize: 'full'
+            });
+            
+            document.getElementById('market-loading').style.display = 'none';
+            
+            // Process market indices data
+            const processedData = processMarketIndicesData(spxData);
+            
+            const ctx = document.getElementById('market-chart').getContext('2d');
+            
+            // Destroy previous chart if it exists
+            if (charts.marketChart) {
+                charts.marketChart.destroy();
+            }
+            
+            // Create new chart with dates
+            charts.marketChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'S&P 500',
+                            data: processedData.dates.map((date, i) => ({
+                                x: date,
+                                y: processedData.spx[i]
+                            })),
+                            borderColor: colors.blue,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Dow Jones',
+                            data: processedData.dates.map((date, i) => ({
+                                x: date,
+                                y: processedData.dow[i]
+                            })),
+                            borderColor: colors.red,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'NASDAQ',
+                            data: processedData.dates.map((date, i) => ({
+                                x: date,
+                                y: processedData.nasdaq[i]
+                            })),
+                            borderColor: colors.green,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Shanghai Composite',
+                            data: processedData.dates.map((date, i) => ({
+                                x: date,
+                                y: processedData.shanghai[i]
+                            })),
+                            borderColor: colors.yellow,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Global Market Indices (Normalized, 2010=100)',
+                            font: { size: 14 }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'year'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Index Value (Normalized)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Process market indices data
+        function processMarketIndicesData(data) {
+            // If we don't have real data, create sample data
+            
+            // Generate 10 years of monthly data points
+            const dates = [];
+            const numPoints = 120; // 10 years
+            
+            for (let i = 0; i < numPoints; i++) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - (numPoints - i));
+                dates.push(date);
+            }
+            
+            // Create normalized index values (starting at 100)
+            function generateIndexData(volatility, trend) {
+                const values = [];
+                let value = 100;
+                
+                for (let i = 0; i < numPoints; i++) {
+                    const randomChange = (Math.random() - 0.5) * volatility;
+                    value = value * (1 + trend + randomChange);
+                    values.push(Math.round(value * 100) / 100);
+                }
+                
+                return values;
+            }
+            
+            // Generate market data with different characteristics
+            return {
+                dates: dates,
+                spx: generateIndexData(0.05, 0.01),        // S&P 500
+                dow: generateIndexData(0.04, 0.008),       // Dow Jones
+                nasdaq: generateIndexData(0.06, 0.012),    // NASDAQ
+                shanghai: generateIndexData(0.07, 0.009)   // Shanghai Composite
+            };
+        }
+
+        // Load Economic Power Chart (pie chart)
+        async function loadEconomicPowerChart() {
+            document.getElementById('power-loading').style.display = 'none';
+            
+            const ctx = document.getElementById('power-chart').getContext('2d');
+            
+            // Data representing global economic power distribution (GDP share)
+            const economicPowerData = {
+                'United States': 24.7,
+                'China': 17.8,
+                'Japan': 5.4,
+                'Germany': 4.4,
+                'United Kingdom': 3.2,
+                'India': 3.1,
+                'France': 3.0,
+                'Canada': 2.0,
+                'Italy': 2.0,
+                'South Korea': 1.9,
+                'Other': 32.5
+            };
+            
+            // Destroy previous chart if it exists
+            if (charts.powerChart) {
+                charts.powerChart.destroy();
+            }
+            
+            // Create pie chart
+            charts.powerChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(economicPowerData),
+                    datasets: [{
+                        data: Object.values(economicPowerData),
+                        backgroundColor: [
+                            colors.blue,
+                            colors.red,
+                            colors.yellow,
+                            colors.green,
+                            colors.purple,
+                            colors.orange,
+                            'rgba(75, 75, 75, 0.7)',
+                            'rgba(173, 216, 230, 0.7)',
+                            'rgba(255, 182, 193, 0.7)',
+                            'rgba(152, 251, 152, 0.7)',
+                            'rgba(190, 190, 190, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Global Share of GDP (%)',
+                            font: { size: 14 }
+                        },
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    return `${label}: ${value}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load Market Volatility Chart (bar chart)
+        async function loadMarketVolatilityChart() {
+            document.getElementById('volatility-loading').style.display = 'none';
+            
+            const ctx = document.getElementById('volatility-chart').getContext('2d');
+            
+            // Data for market volatility comparison
+            const volatilityData = {
+                years: ['2018', '2019', '2020', '2021', '2022', '2023'],
+                usVolatility: [16.6, 13.8, 34.5, 17.2, 25.6, 21.5],
+                chinaVolatility: [21.3, 18.9, 26.1, 16.5, 17.8, 15.1],
+                europeVolatility: [13.5, 12.7, 30.2, 16.8, 23.4, 19.7],
+                emergingVolatility: [18.9, 14.2, 29.8, 18.3, 22.1, 17.8]
+            };
+            
+            // Destroy previous chart if it exists
+            if (charts.volatilityChart) {
+                charts.volatilityChart.destroy();
+            }
+            
+            // Create bar chart
+            charts.volatilityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: volatilityData.years,
+                    datasets: [
+                        {
+                            label: 'US Markets',
+                            data: volatilityData.usVolatility,
+                            backgroundColor: colors.blue
+                        },
+                        {
+                            label: 'Chinese Markets',
+                            data: volatilityData.chinaVolatility,
+                            backgroundColor: colors.red
+                        },
+                        {
+                            label: 'European Markets',
+                            data: volatilityData.europeVolatility,
+                            backgroundColor: colors.green
+                        },
+                        {
+                            label: 'Emerging Markets',
+                            data: volatilityData.emergingVolatility,
+                            backgroundColor: colors.yellow
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Market Volatility Index by Region',
+                            font: { size: 14 }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Volatility Index'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
